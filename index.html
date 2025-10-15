@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YTIQ - Professional YouTube Analytics Platform</title>
+    <meta name="description" content="YTIQ - The most comprehensive YouTube analytics platform with all pro features free. Keyword research, competitor analysis, SEO optimization, and more.">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📊%3C/text%3E%3C/svg%3E">
+    
+    <!-- External Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        'ytiq': {
+                            50: '#fef2f2',
+                            100: '#fee2e2',
+                            500: '#ef4444',
+                            600: '#dc2626',
+                            700: '#b91c1c',
+                            800: '#991b1b',
+                            900: '#7f1d1d',
+                        },
+                        'dark': {
+                            800: '#1f2937',
+                            900: '#111827',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 font-sans">
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="fixed inset-0 bg-white z-50 flex items-center justify-center">
+        <div class="text-center">
+            <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-ytiq-600 mx-auto"></div>
+            <h2 class="mt-4 text-xl font-semibold text-gray-700">Loading YTIQ...</h2>
+        </div>
+    </div>
+
+    <!-- Authentication Modal -->
+    <div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 id="authTitle" class="text-xl font-semibold">Sign In to YTIQ</h3>
+                    <button id="closeAuthModal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <!-- Login Form -->
+                <form id="loginForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input type="email" id="loginEmail" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ytiq-500" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                        <input type="password" id="loginPassword" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ytiq-500" required>
+                    </div>
+                    <button type="submit" class="w-full bg-ytiq-600 text-white py-2 px-4 rounded-md hover:bg-ytiq-700 transition-colors">
+                        Sign In
+                    </button>
+                </form>
+                
+                <!-- Register Form -->
+                <form id="registerForm" class="space-y-4 hidden">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                        <input type="text" id="registerName" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ytiq-500" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input type="email" id="registerEmail" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ytiq-500" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">YouTube Channel URL (Optional)</label>
+                        <input type="url" id="registerChannel" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ytiq-500" placeholder="https://youtube.com/@yourchannel">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                        <input type="password" id="registerPassword" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ytiq-500" required>
+                    </div>
+                    <button type="submit" class="w-full bg-ytiq-600 text-white py-2 px-4 rounded-md hover:bg-ytiq-700 transition-colors">
+                        Create Account
+                    </button>
+                </form>
+                
+                <div class="mt-4 text-center">
+                    <button id="toggleAuthMode" class="text-ytiq-600 hover:text-ytiq-700 text-sm">
+                        Don't have an account? Sign up
+                    </button>
+                </div>
+                
+                <!-- Demo Access -->
+                <div class="mt-4 pt-4 border-t">
+                    <button id="demoAccess" class="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-200 transition-colors">
+                        <i class="fas fa-eye mr-2"></i>Continue with Demo Account
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="app" class="hidden">
+        <!-- Header Navigation -->
+        <nav class="bg-white shadow-sm border-b">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <!-- Logo -->
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 flex items-center">
+                            <span class="text-2xl font-bold text-ytiq-600">YTIQ</span>
+                            <span class="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">FREE</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Search Bar -->
+                    <div class="flex-1 max-w-2xl mx-8">
+                        <div class="relative">
+                            <input type="text" id="globalSearch" placeholder="Search channels, keywords, or videos..." 
+                                   class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ytiq-500">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center">
+                                <i class="fas fa-search text-gray-400"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- User Menu -->
+                    <div class="flex items-center space-x-4">
+                        <button id="notificationsBtn" class="relative p-2 text-gray-400 hover:text-gray-500">
+                            <i class="fas fa-bell"></i>
+                            <span class="absolute -top-1 -right-1 h-5 w-5 bg-ytiq-500 text-white text-xs rounded-full flex items-center justify-center">3</span>
+                        </button>
+                        
+                        <div class="relative">
+                            <button id="userMenuBtn" class="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-100">
+                                <img id="userAvatar" src="https://ui-avatars.com/api/?name=Demo+User&background=ef4444&color=fff" 
+                                     class="h-8 w-8 rounded-full" alt="User Avatar">
+                                <span id="userName" class="text-sm font-medium text-gray-700">Demo User</span>
+                                <i class="fas fa-chevron-down text-xs text-gray-400"></i>
+                            </button>
+                            
+                            <!-- User Dropdown -->
+                            <div id="userDropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 hidden">
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-user mr-2"></i>Profile Settings
+                                </a>
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-youtube mr-2"></i>Connect Channel
+                                </a>
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-cog mr-2"></i>Preferences
+                                </a>
+                                <div class="border-t my-1"></div>
+                                <a href="#" id="logoutBtn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-sign-out-alt mr-2"></i>Sign Out
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="flex">
+            <!-- Sidebar Navigation -->
+            <aside class="w-64 bg-white shadow-sm h-screen sticky top-0 overflow-y-auto">
+                <nav class="mt-6">
+                    <div class="px-4 space-y-1">
+                        <!-- Dashboard -->
+                        <a href="#" data-page="dashboard" class="nav-link bg-ytiq-50 text-ytiq-700 border-r-2 border-ytiq-600 group flex items-center px-3 py-2 text-sm font-medium rounded-l-md">
+                            <i class="fas fa-tachometer-alt mr-3"></i>Dashboard
+                        </a>
+                        
+                        <!-- Analytics -->
+                        <div class="space-y-1">
+                            <h3 class="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Analytics</h3>
+                            <a href="#" data-page="channel-audit" class="nav-link text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-3 py-2 text-sm font-medium rounded-md">
+                                <i class="fas fa-chart-line mr-3"></i>Channel Audit
+                            </a>
+                            <a href="#" data-page="video-analytics" class="nav-link text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-3 py-2 text-sm font-medium rounded-md">
+                                <i class="fas fa-video mr-3"></i>Video Analytics
+                            </a>
+                            <a href="#" data-page="competitor-analysis" class="nav-link text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-3 py-2 text-sm font-medium rounded-md">
+                                <i class="fas fa-users mr-3"></i>Competitor Analysis
+                            </a>
+                            <a href="#" data-page="subscriber-tracking" class="nav-link text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-3 py-2 text-sm font-medium rounded-md">
+                                <i class="fas fa-user-plus mr-3"></i>Subscriber Tracking
+                            </a>
+                        </div>
+                        
+                        <!-- Research Tools -->
+                        <div class="space-y-1 mt-6">
+                            <h3 class="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Research Tools</h3>
+                            <a href="#" data-page="keyword-research" class="nav-link text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-3 py-2 text-sm font-medium rounded-md">
+                                <i class="fas fa-search mr-3"></i>Keyword Research
+                            </a>
+                            <a href="#" data-page="trending-videos" class="nav-link text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-3 py-2 text-sm font-medium rounded-md">
+                                <i class="fas fa-fire mr-3"></i>Trending Videos
+                            </a>
+                            <a href="#" data-page="tag-suggestions" class="nav-link text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-3 py-2 text-sm font-medium rounded-md">
+                                <i class="fas fa-tags mr-3"></i>Tag Suggestions
+                            </a>
+                        </div>
+                        
+                        <!-- Optimization -->
+                        <div class="space-y-1 mt-6">
+                            <h3 class="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Optimization</h3>
+                            <a href="#" data-page="seo-optimizer" class="nav-link text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-3 py-2 text-sm font-medium rounded-md">
+                                <i class="fas fa-cog mr-3"></i>SEO Optimizer
+                            </a>
+                            <a href="#" data-page="thumbnail-analyzer" class="nav-link text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-3 py-2 text-sm font-medium rounded-md">
+                                <i class="fas fa-image mr-3"></i>Thumbnail Analyzer
+                            </a>
+                            <a href="#" data-page="best-time-post" class="nav-link text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-3 py-2 text-sm font-medium rounded-md">
+                                <i class="fas fa-clock mr-3"></i>Best Time to Post
+                            </a>
+                        </div>
+                        
+                        <!-- Monetization -->
+                        <div class="space-y-1 mt-6">
+                            <h3 class="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Monetization</h3>
+                            <a href="#" data-page="monetization-insights" class="nav-link text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-3 py-2 text-sm font-medium rounded-md">
+                                <i class="fas fa-dollar-sign mr-3"></i>Revenue Insights
+                            </a>
+                        </div>
+                    </div>
+                </nav>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="flex-1 bg-gray-50">
+                <div id="content" class="p-6">
+                    <!-- Content will be loaded dynamically -->
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- JavaScript Files -->
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/keyword-research.js"></script>
+    <script src="js/analytics.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
